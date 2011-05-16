@@ -10,7 +10,7 @@
  */
 class MogileFS
 {
-    /**
+	/**
 	 *
 	 * @var Config 
 	 */
@@ -48,7 +48,7 @@ class MogileFS
 		$class = ($class === NULL) ? $this->_config->default_class : $class;
 
 		$location = $this->_do_request('CREATE_OPEN', array(
-			'key'    => $key,
+			'key'	=> $key,
 			'domain' => $this->_config->domain,
 			'class'  => $class,
 		));
@@ -65,11 +65,11 @@ class MogileFS
 			));
 
 		$this->_do_request('CREATE_CLOSE', array(
-			'key'    => $key,
+			'key'	=> $key,
 			'domain' => $this->_config->domain,
 			'devid'  => $location['devid'],
-            'fid'    => $location['fid'],
-            'path'   => $location['path'],
+			'fid'	=> $location['fid'],
+			'path'   => $location['path'],
 		));
 	}
 
@@ -86,7 +86,7 @@ class MogileFS
 		$class = ($class === NULL) ? $this->_config->default_class : $class;
 
 		$location = $this->_do_request('CREATE_OPEN', array(
-			'key'    => $key,
+			'key'	=> $key,
 			'domain' => $this->_config->domain,
 			'class'  => $class,
 		));
@@ -108,11 +108,11 @@ class MogileFS
 			));
 
 		$this->_do_request('CREATE_CLOSE', array(
-			'key'    => $key,
+			'key'	=> $key,
 			'domain' => $this->_config->domain,
 			'devid'  => $location['devid'],
-            'fid'    => $location['fid'],
-            'path'   => $location['path'],
+			'fid'	=> $location['fid'],
+			'path'   => $location['path'],
 		));
 	}
 
@@ -138,15 +138,15 @@ class MogileFS
 	public function get_paths($key, $verify = TRUE)
 	{
 		$result = $this->_do_request('GET_PATHS', array(
-			'key'      => $key,
+			'key'	  => $key,
 			'noverify' => (int) (bool) ! $verify,
 			'domain'   => $this->_config->domain,
 		));
 
 		// "paths" contains the number of paths returned.. Its not really necessary and messes with foreach() etc
-        unset($result['paths']);
+		unset($result['paths']);
 
-        return $result;
+		return $result;
 	}
 	
 	public function rename($from_key, $to_key)
@@ -163,7 +163,7 @@ class MogileFS
 	public function delete($key)
 	{
 		$this->_do_request('DELETE', array(
-			'key'    => $key,
+			'key'	=> $key,
 			'domain' => $this->_config->domain,
 		));
 
@@ -178,7 +178,7 @@ class MogileFS
 	public function connect()
 	{
 		if ($this->connected())
-            return $this;
+			return $this;
 
 		foreach ($this->_config->trackers as $tracker)
 		{
@@ -226,44 +226,56 @@ class MogileFS
 		throw new MogileFS_Exception('Unable to obtain connection to any tracker.');
 	}
 
+	public function disconnect()
+	{
+		if ( ! $this->connected())
+			return $this;
+
+		fclose($this->_socket);
+
+		$this->_socket = NULL;
+	}
+
 	protected function _do_request($cmd, array $args = array())
 	{
 		$this->connect();
 		
-        $params = '';
+		$params = '';
 
-        foreach ($args as $key => $value)
+		foreach ($args as $key => $value)
 		{
-            $params .= '&' . urlencode($key) . '=' . urlencode($value);
+			$params .= '&' . urlencode($key) . '=' . urlencode($value);
 		}
 
-        $result = fwrite($this->_socket, $cmd . $params . "\n");
+		$result = fwrite($this->_socket, $cmd . $params . "\n");
 
-        if ($result === FALSE)
+		if ($result === FALSE)
 		{
-            $this->close();
+			$this->disconnect();
+			
 			throw new MogileFS_Exception('Unable to write to socket');
-        }
+		}
 
-        $line = fgets($this->_socket);
+		$line = fgets($this->_socket);
 
-        if ($line === FALSE)
+		if ($line === FALSE)
 		{
-            $this->close();
-            throw new MogileFS_Exception('Unable to read from socket');
-        }
+			$this->disconnect();
+			
+			throw new MogileFS_Exception('Unable to read from socket');
+		}
 
-        $words = explode(' ', $line);
+		$words = explode(' ', $line);
 
-        if ($words[0] == 'OK')
+		if ($words[0] == 'OK')
 		{
-            parse_str(trim($words[1]), $result);
+			parse_str(trim($words[1]), $result);
 
-            return $result;
-        }
-        else if ($words[0] == 'ERR')
+			return $result;
+		}
+		else if ($words[0] == 'ERR')
 		{
-            if (!isset($words[1]))
+			if (!isset($words[1]))
 				$words[1] = NULL;
 
 			switch ($words[1]) {
@@ -290,10 +302,10 @@ class MogileFS
 		}
 		else
 		{
-			// Something really bad happened - lets close the connection
-            $this->close();
+			// No idea what happened ...
+			$this->disconnect();
 
 			throw new MogileFS_Exception('Unknown error!');
 		}
-    }
+	}
 }
