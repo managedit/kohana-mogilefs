@@ -40,7 +40,6 @@ class MogileFS
 	public function __construct()
 	{
 		$this->_config = Kohana::config('mogilefs');
-		$this->connect();
 	}
 
 	public function set($key, $content, $class = NULL)
