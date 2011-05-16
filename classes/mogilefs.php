@@ -238,7 +238,8 @@ class MogileFS
 
 	protected function _do_request($cmd, array $args = array())
 	{
-		$this->connect();
+		if ( ! $this->connected())
+			$this->connect();
 		
 		$params = '';
 
