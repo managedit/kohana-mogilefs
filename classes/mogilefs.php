@@ -39,7 +39,7 @@ class MogileFS
 
 	public function __construct()
 	{
-		$this->_config = Kohana::config('mogilefs');
+		$this->_config = Kohana::$config->load('mogilefs');
 	}
 
 	public function set($key, $content, $class = NULL)
@@ -74,10 +74,12 @@ class MogileFS
 
 	public function set_file($key, $file, $class = NULL)
 	{
-		$fh = fopen($file, 'r');
-		$fs = filesize($file);
-
-		return $this->set_resource($key, $fh, $class, $fs);
+//		$fh = fopen($file, 'r');
+//		$fs = filesize($file);
+//
+//		return $this->set_resource($key, $fh, $class, $fs);
+		
+		return $this->set($key, file_get_contents($file), $class);
 	}
 
 	public function set_resource($key, $rh, $class = NULL, $length = NULL)
